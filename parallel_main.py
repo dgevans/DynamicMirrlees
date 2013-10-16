@@ -37,15 +37,15 @@ Para.alpha = lognormal.alpha
 #build bgrids
 theta_min = amin(lognormal.integration_nodes0()[0])
 theta_max = amax(lognormal.integration_nodes0()[0])
-lambda_1_diff_grid = hstack((linspace(0,1,8)[:7],linspace(1,5,8)))#linspace(0.,.02,15)#hstack((linspace(0,10,8)[:7],linspace(10,30,8)))
-lambda_2_grid = hstack((linspace(-5.,-0.1,8)[:7],linspace(-0.1,-0.01,8)))#hstack((linspace(-30,-1.,9)[:8],linspace(-1.,-.1,7)))
+lambda_1_diff_grid = linspace(0.,.02,15)#hstack((linspace(0,10,8)[:7],linspace(10,30,8)))
+lambda_2_grid = hstack((linspace(-0.05,-0.005,6)[:5],linspace(-0.005,-0.0001,10)))#hstack((linspace(-30,-1.,9)[:8],linspace(-1.,-.1,7)))
 theta_grid = exp(linspace(log(theta_min),log(theta_max),15))
 X2 = vstack(makeGrid_generic([lambda_2_grid,theta_grid]))
 X = vstack(makeGrid_generic([lambda_1_diff_grid,lambda_2_grid,theta_grid]))
 
 def lambda_1_minf(x):
     xhat = array([x[0]*x[1],x[1]])
-    return T.find_lambda_1(xhat)
+    return T.find_lambda_1_min(xhat)
 
 tasks = []
 for x in X2:
