@@ -53,6 +53,7 @@ def alpha(double theta0):
     Pareto weights
     '''
     return 1.
+    #return 2./(1.+theta0)
     
 def AlphaF0(double theta0):
     '''

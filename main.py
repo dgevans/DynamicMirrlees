@@ -67,8 +67,8 @@ wf= interpolate(X,policies[:,1])
 w2f= interpolate(X,policies[:,2])
 
 #bellman map for time 0
-T= time0_BellmanMap(Para,-1)
-V0 =  T(Vf,wf,w2f)
+T0= time0_BellmanMap(Para,-1)
+V0 =  T0(Vf,wf,w2f)
 brentq(V0,-2.1,-2)#find root for V0
 
 

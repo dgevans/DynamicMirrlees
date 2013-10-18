@@ -69,6 +69,25 @@ class bellman(object):
             obj[i,3] = 1./Uc
         return w.dot(obj)
         
+    def getPolicies(self,state,thetavec,u0=None):
+        '''
+        Computes the expectations of various terms
+        '''
+        if u0 == None:
+            u0 = self.find_u0(state)
+        if not self.Vf ==None:
+            Fs = self.Vf,self.wf,self.w2f
+        else:
+            Fs = None
+        yvec = self.integrateODE(state,thetavec,u0)
+        if yvec[-1,1] > 0.:
+            return nan*ones(4)
+        pol = zeros((len(yvec),3))
+        for i,theta in enumerate(thetavec):
+            V,c,l,tau,Uc = self.Para.quantities(yvec[i],theta,state,Fs)
+            pol[i,:] = [c,l,tau]
+        return pol
+        
     def integrateODE(self,state,thetavec,u0):
         '''
         Integrates ODE over the gridpoints theta
@@ -103,6 +122,8 @@ class bellman(object):
             return y[1:]
         else:
             return y
+            
+    
             
     def integrateODEverbose(self,state,thetavec,u0):
         '''
@@ -237,6 +258,28 @@ class time0_BellmanMap(object):
             V,c,l,tau,Uc = self.Para.quantities0(yvec[i],theta,Fs)
             obj[i,:] = [V,1./Uc]
         return w.dot(obj)
+        
+    def getPolicies(self,thetavec,u0,lambda_=None):
+        '''
+        Computes policies at vector thetavec
+        '''
+        if lambda_ == None:
+            lambda_ = self.find_lambda_(u0)
+        Fs = self.Vf,self.wf,self.w2f
+        yvec = self.integrateODE(thetavec,u0,lambda_)
+        if yvec[-1,1] > 0.:
+            return nan*ones(2)
+        policies = zeros((len(thetavec),3))
+        stateprime = zeros((len(thetavec),3))
+        Para = self.Para
+        for i,theta in enumerate(thetavec):
+            V,c,l,tau,Uc = self.Para.quantities0(yvec[i],theta,Fs)
+            policies[i,:] = [c,l,tau]
+            f_ = self.Para.f0(theta)
+            lambda_2 = yvec[i,1]/(f_)*(Para.beta/Para.delta)
+            lambda_1 = (1./Uc)*(Para.beta/Para.delta)
+            stateprime[i,:] = [lambda_1,lambda_2,theta]
+        return policies,stateprime
 
     def find_lambda_(self,u0):
         '''
@@ -264,7 +307,7 @@ class time0_BellmanMap(object):
             return dy
         
         y0 = self.getInitial_y(u0,lambda_,thetavec[0])
-        r = ode(dy_dtheta).set_integrator('vode',rtol=1e-10,atol = 1e-10,nsteps=1000)
+        r = ode(dy_dtheta).set_integrator('vode',rtol=1e-14,atol = 1e-14,nsteps=1000)
         r.set_initial_value(y0,thetavec[0])
         y = ones((len(thetavec),2))
         y[0] = y0
