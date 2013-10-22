@@ -307,7 +307,7 @@ class time0_BellmanMap(object):
             return dy
         
         y0 = self.getInitial_y(u0,lambda_,thetavec[0])
-        r = ode(dy_dtheta).set_integrator('vode',rtol=1e-14,atol = 1e-14,nsteps=1000)
+        r = ode(dy_dtheta).set_integrator('vode',rtol=1e-10,atol = 1e-10,nsteps=1000)
         r.set_initial_value(y0,thetavec[0])
         y = ones((len(thetavec),2))
         y[0] = y0

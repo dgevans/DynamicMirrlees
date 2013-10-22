@@ -135,7 +135,7 @@ def integration_nodes(theta_):
     return np.exp(x*sigma_tilde+log(theta_)),w
     
     
-x0,w0 = gl_nodes(0.033129137639212609,30.184908852452924,500)
+x0,w0 = gl_nodes(0.033129137639212609,30.184908852452924,100)
 for i,theta in enumerate(x0):
     w0[i] *= f0(theta)
 w0 /= sum(w0)

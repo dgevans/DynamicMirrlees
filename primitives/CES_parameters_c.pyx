@@ -10,7 +10,7 @@ from scipy.optimize import root
 from scipy.optimize import brentq
 
 #parameters
-sigma = 0.5
+sigma = 1.
 epsilon = 0.5
 beta = 0.95
 delta = 0.95

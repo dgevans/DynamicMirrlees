@@ -10,7 +10,7 @@ from numpy import polynomial
 import primitives.CES_parameters_c as Para
 from bellman import bellman
 from scipy.optimize import brentq
-from distributions import lognormal
+import distributions.lognormal_pareto as lognormal
 from utilities import makeGrid_generic
 from utilities import interpolator
 from scipy.optimize import root
@@ -72,7 +72,7 @@ for i,task in enumerate(tasks):
     policies[i,:] = task.get()
     print i
 
-fout = open('sigma0.005.dat','w')
+fout = open('sigma1.dat','w')
 import cPickle
 cPickle.dump((X,Xhat,X2,lambda_1_min,policies),fout)
 fout.close()

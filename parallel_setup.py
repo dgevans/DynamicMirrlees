@@ -10,7 +10,7 @@ from numpy import polynomial
 import primitives.CES_parameters_c as Para
 from bellman import bellman
 from scipy.optimize import brentq
-from distributions import lognormal
+import distributions.lognormal_pareto as lognormal
 from utilities import makeGrid_generic
 from utilities import interpolator
 from scipy.optimize import root
@@ -31,5 +31,5 @@ Para.AlphaF0 = lognormal.AlphaF0
 Para.alpha = lognormal.alpha
 
 #setup bellman map
-T = bellman(Para,-1./(1.-Para.sigma))
+T = bellman(Para,-100.)
 Vnew = T(None,None,None)#no continuationvalue functions

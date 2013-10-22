@@ -33,3 +33,15 @@ setup(
     cmdclass = {'build_ext': build_ext}
 )
 
+ext = Extension('distributions.lognormal_pareto', ['distributions/lognormal_pareto.pyx'],
+include_dirs=['/opt/local/include/',numpy.get_include()],
+library_dirs=["/opt/local/lib"],
+libraries=["gsl","gslcblas"]
+)
+
+setup(
+    name = 'lognormal',
+    ext_modules=[ext],
+    cmdclass = {'build_ext': build_ext}
+)
+
