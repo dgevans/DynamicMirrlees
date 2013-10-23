@@ -31,5 +31,5 @@ Para.AlphaF0 = lognormal.AlphaF0
 Para.alpha = lognormal.alpha
 
 #setup bellman map
-T = bellman(Para,-100.)
+T = bellman(Para,-10.)
 Vnew = T(None,None,None)#no continuationvalue functions
