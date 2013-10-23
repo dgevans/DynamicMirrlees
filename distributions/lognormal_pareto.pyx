@@ -110,8 +110,8 @@ def alpha(double theta0):
     '''
     Pareto weights
     '''
-    #return 1.
-    return 1./theta0/1.265262100649486 #normalized so average pareto weight is 1.
+    return 1.
+    #return 1./theta0/1.265262100649486 #normalized so average pareto weight is 1.
     
 def AlphaF0(double theta0):
     '''

@@ -324,7 +324,11 @@ class time0_BellmanMap(object):
         Computes initial y for ode
         '''
         sigma= self.Para.sigma
-        Uc0 = ( (1-sigma)*u0 + 1 )**(sigma/(sigma-1))
+        if sigma == 1.:
+            c0 = exp(u0)
+            Uc0 = 1./c0
+        else:
+            Uc0 = ( (1-sigma)*u0 + 1 )**(sigma/(sigma-1))
         
             
         mu0 = 1./Uc0*self.Para.F0(theta0)-lambda_*self.Para.AlphaF0(theta0)
