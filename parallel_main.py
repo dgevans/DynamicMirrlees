@@ -53,13 +53,9 @@ lambda_1_min = zeros(len(X2))
 for i,task in enumerate(tasks):
     lambda_1_min[i] = task.get()
     print i
-    
-interpolate2d = interpolator(['spline','spline'],[15,15],[1,1])
-lambda_1_minf = interpolate2d(X2,lambda_1_min)
 
 Xhat = copy(X)
-for x in Xhat:
-    x[0] += lambda_1_minf(x[1:])
+Xhat[:,0] += kron(lambda_1_min,ones(len(lambda_1_diff_grid)))
     
 tasks = []
 for x in Xhat:
