@@ -203,7 +203,7 @@ class bellman(object):
         '''
         Finds the u0 associated with the optimal allocation
         '''
-        theta_ = state[0]
+        theta_ = state[2]
         thetavec,_ = self.Para.integration_nodes(theta_)
         def f(u0_diff):
             u0 = self.u0_min + u0_diff
