@@ -117,6 +117,7 @@ def AlphaF0(double theta0):
     '''
     Compute the integral Integrate_0^theta_0 alpha(theta)f(theta)dtehta0
     '''
+    return F0(theta0)
     alpha_f = lambda theta: alpha(theta)*f0(theta)
     return quad(alpha_f,0.,theta0)[0]
     
@@ -135,7 +136,7 @@ def integration_nodes(theta_):
     return np.exp(x*sigma_tilde+log(theta_)),w
     
     
-x0,w0 = gl_nodes(0.033129137639212609,30.184908852452924,100)
+x0,w0 = gl_nodes(0.01,100.,250)
 for i,theta in enumerate(x0):
     w0[i] *= f0(theta)
 w0 /= sum(w0)

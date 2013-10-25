@@ -8,6 +8,7 @@ from scipy.integrate import ode
 from scipy.optimize import brentq
 from scipy.special import erf
 from numpy import *
+from scipy.integrate import quad
 
 class bellman(object):
     '''
@@ -185,15 +186,16 @@ class bellman(object):
 
         def f(lambda_1):
             state = hstack((lambda_1,state_2))
-            res = self.computeExpectations(state,u0_min)[3]-lambda_1
-            if isnan(res):
+            y = self.integrateODE(state,thetavec,u0_min)[-1]
+            if y[1] > 0:
                 return 1.
-            else:
-                return res
+            return y[1] + self.getTargetMu(state,y,thetavec[-1])
             
         lambda_1 =  bracket_and_solve(f,1.)
-        while f(lambda_1) >0:
+        state = hstack((lambda_1,state_2))
+        while self.integrateODE(state,thetavec,u0_min)[-1,1] > 0.:
            lambda_1 *= 1.000001
+           state = hstack((lambda_1,state_2))
        # state = hstack((lambda_1,state_2))
         return lambda_1
         
@@ -201,14 +203,14 @@ class bellman(object):
         '''
         Finds the u0 associated with the optimal allocation
         '''
-        lambda_1,_,theta_ = state
+        theta_ = state[0]
         thetavec,_ = self.Para.integration_nodes(theta_)
         def f(u0_diff):
-            u0 = self.u0_min+u0_diff
-            res = lambda_1 - self.computeExpectations(state,u0)[3]
-            if isnan(res):
+            u0 = self.u0_min + u0_diff
+            y = self.integrateODE(state,thetavec,u0)[-1]
+            if y[1] > 0:
                 return -1.
-            return res
+            return -(y[1] + self.getTargetMu(state,y,thetavec[-1]))
         f0 = f(0.)
         if(f0<=0.) and f0 != -1.:
             return self.u0_min
@@ -217,13 +219,27 @@ class bellman(object):
             u0_diff *= 0.999999
         return self.u0_min+u0_diff
         
+    def getTargetMu(self,state,y,theta):
+        '''
+        Get target mu.
+        '''
+        lambda_1,lambda_2,theta_ = state
+        if self.Vf == None:
+            Fs = None
+        else:
+            Fs = self.Vf,self.wf,self.w2f
+        V,c,l,tau,Uc = self.Para.quantities(y,theta,state,Fs)
+        alpha = c/theta
+        f = lambda theta: (1./self.Para.Uc(alpha*theta,l)-lambda_1) * self.Para.f(theta,theta_) - lambda_2 * self.Para.f2(theta,theta_) 
+        return quad(f,theta,inf)[0]
+        
 class time0_BellmanMap(object):
     '''
     The bellman map for the time zero bellman equation
     '''
-    def __init__(self,Para,mubar):
+    def __init__(self,Para,lambda_2_max):
         self.Para = Para
-        self.mubar = mubar
+        self.lambda_2_max = lambda_2_max
         
     def __call__(self,Vf,wf,w2f):
         '''
@@ -255,6 +271,8 @@ class time0_BellmanMap(object):
             return nan*ones(2)
         obj = zeros((len(w),2))
         for i,theta in enumerate(thetavec):
+            if self.lambda_2_max <0:
+                yvec[i,1] = max(self.lambda_2_max*self.Para.f0(theta)*theta,yvec[i,1])
             V,c,l,tau,Uc = self.Para.quantities0(yvec[i],theta,Fs)
             obj[i,:] = [V,1./Uc]
         return w.dot(obj)
@@ -285,15 +303,20 @@ class time0_BellmanMap(object):
         '''
         Computes the lambda_ associated with u0
         '''
+        thetavec,_ = self.Para.integration_nodes0()
         def f(lambda_):
-            res =  self.computeExpectation(u0,lambda_)[1]-lambda_
-            if isnan(res):
+            y = self.integrateODE(thetavec,u0,lambda_)[-1]
+            if y[1] > 0:
                 return 1.
-            return res
+            theta = thetavec[-1]
+            mu_target = self.getTargetMu(y,theta,lambda_)
+            return y[1]+mu_target
             
         lambda_ =  bracket_and_solve(f,1.)
-        while f(lambda_) >0:
-            lambda_ *= 1.000001
+        state = hstack((lambda_1,state_2))
+        while self.integrateODE(state,thetavec,u0)[-1,1] > 0.:
+           lambda_1 *= 1.000001
+           state = hstack((lambda_1,state_2))
         return lambda_
         
     def integrateODE(self,thetavec,u0,lambda_):
@@ -303,6 +326,8 @@ class time0_BellmanMap(object):
         Fs = self.Vf,self.wf,self.w2f
         
         def dy_dtheta(theta,y):
+            if self.lambda_2_max <0:
+                y[1] = max(self.lambda_2_max*self.Para.f0(theta)*theta,y[1])
             dy = self.Para.differentialEquation0(y,theta,lambda_,Fs)
             return dy
         
@@ -335,6 +360,18 @@ class time0_BellmanMap(object):
         
         return array([u0,mu0])
     
+    def getTargetMu(self,y,theta,lambda_):
+        '''
+        Get target mu.
+        '''
+        Fs = self.Vf,self.wf,self.w2f
+        if(y[1]/(theta*self.Para.f0(theta)) < self.lambda_2_max ):
+            return 0.
+        V,c,l,tau,Uc = self.Para.quantities0(y,theta,Fs)
+        alpha = c/theta
+        f = lambda theta: (1./self.Para.Uc(alpha*theta,l)-lambda_) * self.Para.f0(theta)
+        return quad(f,theta,inf)[0]
+    
 def bracket_and_solve(F,x0,scale = 2.):
     '''
     Brackets the root of F and solves under assumption that F is decreasing
@@ -342,12 +379,12 @@ def bracket_and_solve(F,x0,scale = 2.):
     xmin = x0
     xmax = x0
     if(F(x0) > 0.):
-            xmax *= 2.
+            xmax *= scale
             while(F(xmax) >0.):
                 xmin = xmax
                 xmax *= scale
     else:
-        xmin *= 0.5
+        xmin /= scale
         while(F(xmin) <0.):
             xmax = xmin
             xmin /= scale

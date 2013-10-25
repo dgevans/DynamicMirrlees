@@ -36,7 +36,7 @@ Para.alpha = lognormal.alpha
 
 #build bgrids
 lambda_1_diff_grid = hstack((linspace(0,1,8)[:7],linspace(1,40,8)))#linspace(0.,.02,15)#hstack((linspace(0,10,8)[:7],linspace(10,30,8)))
-lambda_2_grid = hstack((linspace(-50,-1.,8)[:7],linspace(-1.,-0.01,8)))#hstack((linspace(-30,-1.,9)[:8],linspace(-1.,-.1,7)))
+lambda_2_grid = hstack((linspace(-50,-1.,8)[:7],linspace(-1.,-0.001,8)))#hstack((linspace(-30,-1.,9)[:8],linspace(-1.,-.1,7)))
 theta_grid = hstack((exp(linspace(log(0.01),log(3.),11)[:10]),linspace(3.,100.,10)))
 X2 = vstack(makeGrid_generic([lambda_2_grid,theta_grid]))
 X = vstack(makeGrid_generic([lambda_1_diff_grid,lambda_2_grid,theta_grid]))
